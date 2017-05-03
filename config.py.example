@@ -1,0 +1,11 @@
+api_key = ""
+api_secret = ""
+ponderation = 60
+data_duration = "week"
+currencies = {
+    "btc": "BTC-EUR",
+    "eth": "ETH-EUR",
+    "ltc": "LTC-EUR"
+}
+interval = 5000
+graph = True
