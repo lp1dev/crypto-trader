@@ -1,7 +1,9 @@
-#!/bin/python
+#!./env/bin/python
 
 from    rx import Observable, Observer
 from    time import sleep
+import  matplotlib as mpl
+mpl.use('Agg')
 import  matplotlib.pyplot as plt
 import  dateutil.parser
 import  requests
@@ -9,6 +11,8 @@ import  json
 import  config
 import  time
 import  telebot
+
+plt.ioff()
 
 go_on = True
 coinbase_api = "https://www.coinbase.com/api/v2/"
@@ -27,7 +31,7 @@ def     send_all_chats(message, _type="message"):
                 send_user(message, _type, chat)
 
 @bot.message_handler(commands=['stop'])
-def     register_chat(message):
+def     unregister_chat(message):
         global chats
         chats.remove(message.chat.id)
         bot.reply_to(message, 'Noted. You won\'t get anymore trading messages !')
@@ -122,11 +126,12 @@ def     handle_data(data, graphs=False, chat_id=None):
         images = []
         for currency in data.keys():
                 last_value = data[currency]['x'][len(data[currency]['x']) - 1]
-                variation = (last_value - data[currency]['average'])
-                smooth_variation = (last_value - data[currency]['smooth_average'])
+                variation = round((last_value - data[currency]['average']), 4)
+                percentage = (variation / data[currency]['average']) * 100.0
+                smooth_variation = round((last_value - data[currency]['smooth_average']), 4)
                 smooth_variation = ("+" if smooth_variation >= 0 else "") + str(smooth_variation)
                 variation = ("+" if variation >= 0 else "") + str(variation) 
-                message = "%s's actual value is %i € (%s €)(%s € mmc) " %(currency, last_value, variation, smooth_variation)
+                message = "%s[%i €](%s€ [%i%%])(%s€ mmc)]" %(currency, last_value, variation, percentage, smooth_variation)
                 messages.append(message)
                 if config.graph:
                         print_graph(currency, data[currency])

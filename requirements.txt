@@ -1,8 +1,14 @@
 appdirs==1.4.3
 coinbase==2.0.6
+cycler==0.10.0
+matplotlib==2.0.1
+numpy==1.12.1
 packaging==16.8
 pycrypto==2.6.1
 pyparsing==2.2.0
+pyTelegramBotAPI==2.3.2
+python-dateutil==2.6.0
+pytz==2017.2
 requests==2.13.0
 Rx==1.5.9
 six==1.10.0
