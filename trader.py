@@ -20,7 +20,7 @@ chats = []
 bot = telebot.TeleBot(config.telegram_api_key)
 
 def     send_user(message, _type="message", chat=None):
-        if _type is "message":
+        if _type is "message" and len(message):
                 bot.send_message(chat, message)
         elif _type is "image":
                 photo = open(message, 'rb')
@@ -28,7 +28,8 @@ def     send_user(message, _type="message", chat=None):
         
 def     send_all_chats(message, _type="message"):
         for chat in chats:
-                send_user(message, _type, chat)
+                if len(message):
+                        send_user(message, _type, chat)
 
 @bot.message_handler(commands=['stop'])
 def     unregister_chat(message):
@@ -45,7 +46,7 @@ def     register_chat(message):
 
 @bot.message_handler(commands=['graphs'])
 def     trade_graphs(message):
-        bot.reply_to(message, handle_data(update_data(), True, message.chat.id))
+        handle_data(update_data(), True, message.chat.id)
 
 @bot.message_handler(commands=['help'])
 def     help(message):
@@ -122,17 +123,15 @@ def     save_image(title, data, filename):
         plt.savefig(filename)
 
 def     handle_data(data, graphs=False, chat_id=None):
-        messages = []
-        images = []
         for currency in data.keys():
                 last_value = data[currency]['x'][len(data[currency]['x']) - 1]
-                variation = round((last_value - data[currency]['average']), 4)
-                percentage = (variation / data[currency]['average']) * 100.0
-                smooth_variation = round((last_value - data[currency]['smooth_average']), 4)
+                variation = round((data[currency]['average'] - last_value), config.digits)
+                percentage = round((variation / data[currency]['average']) * 100.0, config.digits)
+                smooth_variation = round((data[currency]['smooth_average'] - last_value), config.digits)
+                smooth_percentage = round((smooth_variation / data[currency]['smooth_average']) * 100, config.digits)
                 smooth_variation = ("+" if smooth_variation >= 0 else "") + str(smooth_variation)
                 variation = ("+" if variation >= 0 else "") + str(variation) 
-                message = "%s[%i €](%s€ [%i%%])(%s€ mmc)]" %(currency, last_value, variation, percentage, smooth_variation)
-                messages.append(message)
+                message = "%s [%s €](%s€ [%s%%])(%s€ mmc [%s%%])" %(currency.upper(), str(last_value), variation, str(percentage), smooth_variation, str(smooth_percentage))
                 if config.graph:
                         print_graph(currency, data[currency])
                 if config.graph_img and graphs and chat_id:
@@ -142,7 +141,6 @@ def     handle_data(data, graphs=False, chat_id=None):
                         send_user(message, "message", chat_id)
                 else:
                         send_all_chats(message)
-        return {'messages': messages, 'images': images}
   
 def	main():
         Observable.interval(config.interval).map(update_data).subscribe(handle_data)
