@@ -1,11 +1,14 @@
-api_key = ""
-api_secret = ""
+telegram_api_key = ""
+coinbase_api_key = ""
+coinbase_api_secret = ""
 ponderation = 60
-data_duration = "week"
+data_duration = "hour"
 currencies = {
     "btc": "BTC-EUR",
     "eth": "ETH-EUR",
     "ltc": "LTC-EUR"
 }
-interval = 5000
-graph = True
+interval = 1800 * 1000
+#interval = 3000
+graph = False
+graph_img = "./tmp.png"
