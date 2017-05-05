@@ -2,22 +2,26 @@
 
 from    rx import Observable, Observer
 from    time import sleep
-import  matplotlib as mpl
-mpl.use('Agg')
-import  matplotlib.pyplot as plt
-import  dateutil.parser
 import  requests
 import  json
 import  config
 import  time
 import  telebot
+from service import CurrencyAPI
 
-plt.ioff()
-
-go_on = True
-coinbase_api = "https://www.coinbase.com/api/v2/"
+go_on = False
 chats = []
-bot = telebot.TeleBot(config.telegram_api_key)
+bot = None
+api = None
+
+def     init():
+        global go_on
+        global bot
+        global api
+        go_on = True
+        bot = telebot.TeleBot(config.telegram_api_key)
+        api = CurrencyAPI()
+        bot.polling()
 
 def     send_user(message, _type="message", chat=None):
         if _type is "message" and len(message):
@@ -52,77 +56,11 @@ def     trade_graphs(message):
 def     help(message):
         bot.reply_to(message, "You can use /start to ask me to start printing trading informations in this thread, /stop to ask me to stop and /graphs to print the last data graphs")
 
-def     moy(x):
-        moy = 0
-        for value in x:
-                moy += value
-        return moy / len(x)
-
-def     smooth_data(x, y, p):
-    xout=[]
-    yout=[]
-    xout.append(x[0])
-    yout.append(y[0])
-    for i in range(p, len(x) - p):
-        xout.append(x[i])
-    for i in range(p, len(y) - p):
-        val = 0
-        for k in range(2 * p):
-            val += y[i - p + k]
-        yout.append(val / 2 / p)
-    xout.append(x[len(x) - 1])
-    yout.append(y[len(y) - 1])
-    return xout, yout
-
-def     get_prices(currency, duration):
-  r = requests.get(coinbase_api + "/prices/%s/historic?period=%s" %(currency, duration))
-  data = json.loads(r.text)
-  return data
-
-def     parse_data(data):
-    prices = []
-    times = []
-    for value in data:
-        prices.append(float(value['price']))
-        datetime = dateutil.parser.parse(value['time'])
-        times.append(int(time.mktime(datetime.timetuple())))
-    return prices, times
-
-def     update_data(in1=0, in2=0):
-    data = {}
-    for currency in config.currencies.keys():
-        data[currency] = {}
-        currency_data = get_prices(config.currencies[currency], config.data_duration)
-        x, y = parse_data(currency_data['data']['prices'])
-        data[currency]['x'] = x
-        data[currency]['y'] = y
-        data[currency]['average'] = moy(x)
-        y, x = smooth_data(y, x, config.ponderation)
-        data[currency]['smooth_average'] = moy(x)
-        data[currency]['smooth_x'] = x
-        data[currency]['smooth_y'] = y
-    return data
-
-def     print_graph(title, data):
-        plt.clf()
-        plt.title(title)
-        plt.xlabel("Time")
-        plt.ylabel("€")
-        plt.plot(data['y'], data['x'])
-        plt.plot(data['smooth_y'], data['smooth_x'])
-        plt.show()
-
-def     save_image(title, data, filename):
-        plt.clf()
-        sleep(1)
-        plt.title(title)
-        plt.xlabel("Time")
-        plt.ylabel("€")
-        plt.plot(data['y'], data['x'])
-        plt.plot(data['smooth_y'], data['smooth_x'])
-        plt.savefig(filename)
-
 def     handle_data(data, graphs=False, chat_id=None):
+        if chat_id is None:
+                send_all_chats("Report for the %s : " %(config.data_duration))
+        else:
+                send_user("Report for the %s : " %(config.data_duration), "message", chat_id)
         for currency in data.keys():
                 last_value = data[currency]['x'][len(data[currency]['x']) - 1]
                 variation = round((data[currency]['average'] - last_value), config.digits)
@@ -143,8 +81,8 @@ def     handle_data(data, graphs=False, chat_id=None):
                         send_all_chats(message)
   
 def	main():
-        Observable.interval(config.interval).map(update_data).subscribe(handle_data)
-        bot.polling()
+#Observable.interval(config.interval).map(api.fetch).subscribe(handle_data)
+        init()
         return 0
 
 if __name__ == '__main__':
