@@ -1,27 +1,52 @@
 from api.graph import GraphAPI
 from api.currency import CurrencyAPI
-from api.messages import MessagesAPI
 import config
 
 
 class Trader:
     def __init__(self):
-        self.messagesAPI = MessagesAPI()
         self.currencyAPI = CurrencyAPI()
-        self.messagesAPI.start()
         return
 
-    def report(self, data, graphs=False, chat_id=None):
-        if chat_id is not None:
-            def broadcast(m, _type):
-                self.messagesAPI.send_to_user(m, _type, chat_id)
-        else:
-            def broadcast(m):
-                self.messagesAPI.send_to_everyone(m)
-        broadcast("Report for the %s : " % config.data_duration)
+    @staticmethod
+    def advise(data):
+        report = Trader.percentages_advise(data)
         for currency in data.keys():
-            currency_data = data[currency]
-            if config.graph_img and graphs:
-                GraphAPI.save_image(currency, currency_data, config.graph_img)
-                broadcast(config.graph_img, "image")
-            broadcast(currency)
+            if 'order' not in report[currency].keys():
+                report[currency] = {'order': 'WAIT'}
+        return report
+
+    @staticmethod
+    def percentages_advise(data):
+        activating_percentage = 0.1
+        report = {}
+        for currency in data.keys():
+            report[currency] = {'order': 'WAIT'}
+            for time_span in data[currency].keys():
+                currency_data = data[currency][time_span]
+                if currency_data['percentage'] >= activating_percentage:
+                    if report[currency]['order'] == 'SELL':
+                        report[currency]['order'] += '++'
+                    else:
+                        report[currency]['order'] = 'SELL'
+                elif (-1 * currency_data['percentage']) >= activating_percentage:
+                    if report[currency]['order'] == 'BUY':
+                        report[currency]['order'] += '++'
+                else:
+                    report[currency]['order'] = 'WAIT'
+        return report
+
+    def report(self, time_spans=None, graphs=False):
+        if time_spans is None:
+            time_spans = ['day', 'hour']
+        report = {}
+        for time_span in time_spans:
+            data = self.currencyAPI.fetch(time_span)
+            for currency in data.keys():
+                report[currency] = {}
+                currency_data = data[currency]
+                report[currency][time_span] = currency_data
+                if config.graph_img and graphs:
+                    GraphAPI.save_image(currency.upper(), currency_data, config.graph_img)
+                    report[currency][time_span]['graphs'] = {"message": config.graph_img, "type": "image"}
+        return report

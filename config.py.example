@@ -1,14 +1,14 @@
 telegram_api_key = ""
 coinbase_api_key = ""
+coinbase_api_url = "https://www.coinbase.com/api/v2/"
 coinbase_api_secret = ""
-ponderation = 60
+window = 60
 data_duration = "hour"
 currencies = {
     "btc": "BTC-EUR",
     "eth": "ETH-EUR",
     "ltc": "LTC-EUR"
 }
-interval = 1800 * 1000
-#interval = 3000
+interval = 3000
 graph = False
 graph_img = "./tmp.png"

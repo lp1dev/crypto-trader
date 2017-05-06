@@ -41,5 +41,5 @@ class MessagesAPI:
     def help(message):
         bot.reply_to(message,
                      """You can use /start to ask me to start printing trading
-                     informations in this thread, /stop to ask me to stop and /
+                     information in this thread, /stop to ask me to stop and /
                      graphs to print the last data graphs""")

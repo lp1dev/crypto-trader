@@ -15,14 +15,19 @@ class CurrencyAPI:
             data[currency]['prices'] = prices
             data[currency]['times'] = times
             data[currency]['average'] = np.average(prices)
+            data[currency]['variation'] = (prices[0] - prices[len(prices) - 1])
+            data[currency]['percentage'] = 100 * (data[currency]['variation'] / prices[0])
             prices = self.moving_average(prices)
-            data[currency]['smooth_average'] = np.average(prices)
+            data[currency]['ma_average'] = np.average(prices)
             data[currency]['ma_prices'] = prices
+            data[currency]['ma_times'] = self.moving_average(times)
         return data
 
     @staticmethod
-    def moving_average(data, window):
-        return np.convolve(data, np.ones(window) / window)
+    def moving_average(a, n=config.window):
+        ret = np.cumsum(a, dtype=float)
+        ret[n:] = ret[n:] - ret[:-n]
+        return list(ret[n - 1:] / n)
 
     @staticmethod
     def parse_times_prices(data):

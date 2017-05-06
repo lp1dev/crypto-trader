@@ -1,7 +1,9 @@
+import numpy as np
 import matplotlib as mpl
+from time import sleep
+
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from time import sleep
 
 
 class GraphAPI:
@@ -24,6 +26,6 @@ class GraphAPI:
         plt.title(title)
         plt.xlabel("Time")
         plt.ylabel("€")
-        plt.plot(data['y'], data['x'])
-        plt.plot(data['smooth_y'], data['smooth_x'])
+        plt.plot(data['times'], data['prices'])
+        plt.plot(data['ma_times'], data['ma_prices'])
         plt.savefig(filename)
