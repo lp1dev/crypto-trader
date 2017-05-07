@@ -1,15 +1,14 @@
 #!./env/bin/python
 
-from api.trader import Trader
 from api.coinbase import CoinbaseAPI
+from api.trader import Trader
 
 
 def main():
     trader = Trader()
-    report = trader.report(['day', 'hour'], graphs=True)
-    print(report['btc']['hour']['percentage'])
+    report = trader.report(['day', 'hour'], accounts=CoinbaseAPI.get_accounts(), graphs=True)
+    print(report)
     print(trader.advise(report))
-    print(CoinbaseAPI.get_accounts())
     return 0
 
 

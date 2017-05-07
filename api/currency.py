@@ -6,7 +6,7 @@ import numpy as np
 
 
 class CurrencyAPI:
-    def fetch(self, duration=config.data_duration):
+    def fetch(self, duration=config.time_spans):
         data = {}
         for currency in config.currencies.keys():
             data[currency] = {}
