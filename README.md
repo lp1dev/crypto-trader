@@ -16,3 +16,4 @@ CLI version displays up to date information and variation analysis about the cur
 
 - ./trader-cli.py
 
+![screencapture](https://raw.githubusercontent.com/lp1dev/crypto-trader/master/trader.gif)
